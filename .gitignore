@@ -1,0 +1,5 @@
+.idea/*
+.DS_STORE
+
+summaries/*
+src/candidate_generation/finetuned_checkpoints/*
