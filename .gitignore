@@ -1,5 +1,7 @@
 .idea/*
 .DS_STORE
+src/val_permutations/.DS_STORE
+src/test_permutations/.DS_STORE
 
 summaries/*
 src/candidate_generation/finetuned_checkpoints/*
