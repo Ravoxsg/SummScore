@@ -10,7 +10,7 @@ import datasets
 import openai
 from tqdm import tqdm
 
-sys.path.append("/data/mathieu/SummaScore/src/") # todo: change to your folder path
+sys.path.append("/data/mathieu/SummScore/src/") # todo: change to your folder path
 
 from common.utils import seed_everything
 from common.evaluation import overall_eval 
@@ -35,7 +35,7 @@ parser.add_argument('--dataset', type=str, default = "xsum", choices= ["cnndm", 
 
 # model
 parser.add_argument('--model_type', type = str, default = "pegasus", choices=["pegasus", "bart", "chatgpt"])
-parser.add_argument('--model_name', type=str, default = "google/pegasus-xsum",
+parser.add_argument('--model_name', type=str, default = "google/pegasus-large",
                     choices = [
                         # Use case #1: Unsupervised abstractive summarization
                         "google/pegasus-large", "gpt-3.5-turbo",
@@ -144,7 +144,7 @@ def main(args):
     labels = [val_data[i][args.summary_key] for i in range(len(val_data))]
 
     # permute
-    p = pickle.load(open(f"{args.val_dataset}_permutations/{args.dataset_name}_{args.val_dataset}_permutation.pkl", "rb"))
+    p = pickle.load(open(f"../{args.val_dataset}_permutations/{args.dataset_name}_{args.val_dataset}_permutation.pkl", "rb"))
     texts = [texts[x] for x in p]
     labels = [labels[x] for x in p]
 
@@ -191,9 +191,14 @@ def main(args):
         # model
         model = build_model(args)
         # loop
-        for batch in val_loader:
+        for idx, batch in tqdm(enumerate(val_loader)):
             summaries_i = beam_search_step(batch, tokenizer, model, args)
             summaries.append(summaries_i)
+            if idx == 0:
+                print("*"*50)
+                print(batch["text"][0])
+                print("*"*20)
+                print(summaries_i[0])
 
     # evaluation
     base_results = [summaries[i][0] for i in range(len(summaries))]
@@ -202,7 +207,7 @@ def main(args):
     overall_eval(texts, base_results, labels, args)
 
     # export
-    num_candidates = len(val_summaries[0])
+    num_candidates = len(summaries[0])
     if args.save_summaries:
         path = "../../summaries/{}/{}/{}/".format(args.dataset, args.val_dataset, args.generation_method)
         with open(path + "{}_texts_{}_beams_{}.pkl".format(args.val_dataset, len(val_texts), num_candidates), "wb") as f:
