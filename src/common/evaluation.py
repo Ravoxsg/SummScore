@@ -3,7 +3,6 @@ import numpy as np
 from nltk.tokenize import word_tokenize, sent_tokenize
 from rouge_score import rouge_scorer
 from bert_score import score
-from common.bart_score import BARTScorer
 from scipy.stats import pearsonr
 from common.summary_processing import pre_rouge_processing
 
@@ -77,15 +76,6 @@ def bertscore_eval(val_summaries, val_labels, args, verbose=True):
     mean_f1 = 100 * f1.mean()
     print("Mean BERTScore F1: {:.2f}".format(mean_f1))
     return 100 * f1.numpy()
-
-
-def bartscore_eval(val_summaries, val_labels, args):
-    print("\n", "*" * 10, "3 - BARTScore evaluation", "*" * 10)
-    bart_scorer = BARTScorer(device=args.device, checkpoint='facebook/bart-large-cnn')
-    bartscore_scores = bart_scorer.score(val_labels, val_summaries)
-    m_bartscore = np.mean(np.array(bartscore_scores))
-    print("Mean BARTScore: {:.2f}".format(m_bartscore))
-    return np.array(bartscore_scores)
 
 
 def new_ngram_eval(val_texts, val_summaries, args):
