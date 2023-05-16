@@ -73,7 +73,6 @@ parser.add_argument('--stemmer', type = bool, default = True)
 # metrics
 parser.add_argument('--eval_rouge', type = bool, default = True)
 parser.add_argument('--eval_bertscore', type = bool, default = False)
-parser.add_argument('--eval_bartscore', type = bool, default = False)
 parser.add_argument('--eval_new_ngram', type = bool, default = True)
 parser.add_argument('--eval_rouge_text', type = bool, default = False)
 
