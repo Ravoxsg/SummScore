@@ -7,4 +7,5 @@ src/common/__pycache__/*
 src/candidate_generation/__pycache__/*
 
 summaries/*
+summary_scores/*
 src/candidate_generation/finetuned_checkpoints/*
