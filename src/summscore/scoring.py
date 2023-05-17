@@ -1,5 +1,4 @@
 import numpy as np
-import mauve
 import pickle
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -14,7 +13,7 @@ from nltk.tokenize import word_tokenize
 
 from common.bart_score import BARTScorer
 from common.evaluation import overall_eval
-from common.summary_processing import candidate_pre_rouge_processing
+from common.summary_processing import pre_rouge_processing
 
 
 ##################################################################### N-gram overlap
@@ -39,7 +38,7 @@ def get_rouge_scores(val_summaries, val_pseudo_labels, args):
             rls = []
             for j in range(len(val_summaries[i])):
                 val_summary = val_summaries[i][j]
-                val_summary = candidate_pre_rouge_processing(val_summary, args)
+                val_summary = pre_rouge_processing(val_summary, args)
                 rouge_scores = scorer.score(val_pseudo_label, val_summary)
                 r1 = rouge_scores["rouge1"].fmeasure
                 r2 = rouge_scores["rouge2"].fmeasure

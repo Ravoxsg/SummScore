@@ -13,9 +13,6 @@ from tqdm import tqdm
 sys.path.append("/data/mathieu/SummScore/src/") # todo: change to your folder path
 
 from common.utils import seed_everything
-from common.evaluation import overall_eval
-from model_utils import build_tokenizer, build_model
-from dataset import Dataset
 from engine import build_scores
 
 
@@ -40,6 +37,7 @@ parser.add_argument('--generation_methods', type = list, default = [
 ])
 
 # model
+parser.add_argument('--model_type', type=str, default="pegasus", choices=["pegasus","bart"])
 parser.add_argument('--clean_model_name', type=str, default = "pegasus_unsupervised",
                     choices = [
                         # Use case #1: Unsupervised abstractive summarization
@@ -59,7 +57,7 @@ parser.add_argument('--clean_model_name', type=str, default = "pegasus_unsupervi
 # summary generation
 parser.add_argument('--val_dataset', type=str, default = "val", choices = ["val", "test"])
 parser.add_argument('--max_val_size', type = int, default = 1000)
-parser.add_argument('--num_candidates', type = int, default = 20) # for beam search
+parser.add_argument('--num_beams', type = int, default = 20) # for beam search
 
 # features for SummScore
 parser.add_argument('--metrics_to_use', type = dict, default = {
@@ -84,6 +82,7 @@ parser.add_argument('--compute_bartscore', type = bool, default = True)
 parser.add_argument('--compute_bleurt', type = bool, default = True)
 parser.add_argument('--compute_diversity', type = bool, default = True)
 parser.add_argument('--compute_length', type = bool, default = True)
+parser.add_argument('--stemmer', type = bool, default = True)
 
 args = parser.parse_args()
 
@@ -123,10 +122,6 @@ if args.val_dataset == "val":
 elif args.val_dataset == "test":
     args.val_size = test_sizes[idx]
 
-model_name = args.model_name.split(",")
-args.model_name = model_name[0]
-args.clean_model_name = model_name[1]
-
 print("*"*50)
 print(args)
 
@@ -140,9 +135,9 @@ def main(args):
 
     # load data
     path = "../../summaries/{}/{}/{}/".format(args.dataset_key, args.val_dataset, args.generation_methods[0])
-    texts_path = path + f"{args.val_dataset}_texts_{size}_beams_{args.num_candidates}.pkl"
+    texts_path = path + f"{args.val_dataset}_texts_{size}_beams_{args.num_beams}.pkl"
     texts = pickle.load(open(texts_path, "rb"))
-    summaries_path = path + f"{args.val_dataset}_summaries_{args.clean_model_name}_{size}_beams_{args.num_candidates}.pkl"
+    summaries_path = path + f"{args.val_dataset}_summaries_{args.clean_model_name}_{size}_beams_{args.num_beams}.pkl"
     summaries = pickle.load(open(summaries_path, "rb"))
 
     # build the scores for each summary candidate

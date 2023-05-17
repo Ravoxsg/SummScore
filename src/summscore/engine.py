@@ -1,5 +1,4 @@
 import numpy as np
-import mauve
 
 from time import time
 from bert_score import score
