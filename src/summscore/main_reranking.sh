@@ -1,0 +1,1 @@
+python main_build_scores.py --mode train --dataset_key samsum --clean_model_name pegasus_unsupervised --val_dataset val

@@ -1,0 +1,2 @@
+python main_candidate_generation.py --dataset_key samsum --model_name google/pegasus-large,pegasus_unsupervised -- val_dataset val
+python main_candidate_generation.py --dataset_key samsum --model_name google/pegasus-large,pegasus_unsupervised -- val_dataset test

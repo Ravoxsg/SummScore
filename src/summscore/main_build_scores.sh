@@ -1,0 +1,2 @@
+python main_build_scores.py --dataset_key samsum --clean_model_name pegasus_unsupervised --val_dataset val
+python main_build_scores.py --dataset_key samsum --clean_model_name pegasus_unsupervised --val_dataset test
