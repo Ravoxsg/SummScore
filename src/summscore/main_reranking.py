@@ -120,6 +120,7 @@ parser.add_argument('--eval_target_abstractiveness_recall', type=bool, default=F
 parser.add_argument('--eval_rouge_text', type=bool, default=False)
 parser.add_argument('--check_correlation', type=bool, default=False)
 parser.add_argument('--stemmer', type=bool, default=True)
+parser.add_argument('--n_show_summaries', type=int, default=0)
 
 args = parser.parse_args()
 

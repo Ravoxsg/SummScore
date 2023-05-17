@@ -189,7 +189,7 @@ def get_best_grid_weights(all_scores, names, texts, summaries, labels, args):
             best_idx = np.argmax(candidate_scores)
             final_idx.append(best_idx)
         new_summaries = [summaries[k][final_idx[k]] for k in range(len(final_idx))]
-        scores, _ = overall_eval(texts, new_summaries, labels, args)
+        scores, _ = overall_eval(texts, new_summaries, labels, args, display=False)
         # print("Weights: {}, iter {} / {}".format(weights, i + 1, len(all_weights)))
         r1, r2, rl = scores[0], scores[1], scores[2]
         mean_r = (np.mean(r1) + np.mean(r2) + np.mean(rl)) / 3
