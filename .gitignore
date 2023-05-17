@@ -3,5 +3,8 @@
 src/val_permutations/.DS_STORE
 src/test_permutations/.DS_STORE
 
+src/common/__pycache__/*
+src/candidate_generation/__pycache__/*
+
 summaries/*
 src/candidate_generation/finetuned_checkpoints/*
