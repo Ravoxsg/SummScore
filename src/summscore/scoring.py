@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import os
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from bert_score import score
@@ -22,20 +23,16 @@ from common.summary_processing import pre_rouge_processing
 def get_rouge_scores(val_summaries, val_pseudo_labels, args):
     print("\nComputing ROUGE scores:")
     if args.compute_rouge:
-        path = "../../summary_scores/{}/{}/metrics/rouge/{}/{}_rouge_{}_{}_beams_{}.pkl".format(
-            args.dataset_key, args.generation_methods[0], args.val_dataset, args.val_dataset, args.clean_model_name,
-            len(val_summaries), args.num_beams
-        )
-        print("ROUGE path: {}".format(path))
+        os.makedirs(f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/rouge/{args.val_dataset}", exist_ok=True)
+        path = f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/rouge/{args.val_dataset}/{args.val_dataset}_rouge_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+        print(f"ROUGE path: {path}")
         all_r1s = np.zeros((len(val_summaries), len(val_summaries[0])))
         all_r2s = np.zeros((len(val_summaries), len(val_summaries[0])))
         all_rls = np.zeros((len(val_summaries), len(val_summaries[0])))
         scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeLsum'], use_stemmer = args.stemmer)
         for i in tqdm(range(len(val_summaries))):
             val_pseudo_label = val_pseudo_labels[i]
-            r1s = []
-            r2s = []
-            rls = []
+            r1s, r2s, rls = [], [], []
             for j in range(len(val_summaries[i])):
                 val_summary = val_summaries[i][j]
                 val_summary = pre_rouge_processing(val_summary, args)
@@ -59,11 +56,8 @@ def get_rouge_scores(val_summaries, val_pseudo_labels, args):
     else:
         all_gen_rs = []
         for x in args.generation_methods:
-            path = "../../summary_scores/{}/{}/metrics/rouge/{}/{}_rouge_{}_{}_beams_{}.pkl".format(
-                args.dataset_key, x, args.val_dataset, args.val_dataset, args.clean_model_name,
-                len(val_summaries), args.num_beams
-            )
-            print("ROUGE path: {}".format(path))
+            path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/rouge/{args.val_dataset}/{args.val_dataset}_rouge_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+            print(f"ROUGE path: {path}")
             with open(path, "rb") as f:
                 all_rs = pickle.load(f)
                 print("loaded the ROUGE!")
@@ -82,11 +76,9 @@ def get_rouge_scores(val_summaries, val_pseudo_labels, args):
 def get_bleu_scores(val_summaries, val_pseudo_labels, args):
     print("\nComputing BLEU scores:")
     if args.compute_bleu:
-        path = "../../summary_scores/{}/{}/metrics/bleu/{}/{}_bleu_{}_{}_beams_{}.pkl".format(
-            args.dataset_key, args.generation_methods[0], args.val_dataset, args.val_dataset, args.clean_model_name,
-            len(val_summaries), args.num_beams
-        )
-        print("BLEU path: {}".format(path))
+        os.makedirs(f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/bleu/{args.val_dataset}", exist_ok=True)
+        path = f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/bleu/{args.val_dataset}/{args.val_dataset}_bleu_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+        print(f"BLEU path: {path}")
         bleu_scores = []
         for i in tqdm(range(len(val_summaries))):
             val_label = val_pseudo_labels[i]
@@ -104,11 +96,8 @@ def get_bleu_scores(val_summaries, val_pseudo_labels, args):
     else:
         all_gen_bleus = []
         for x in args.generation_methods:
-            path = "../../summary_scores/{}/{}/metrics/bleu/{}/{}_bleu_{}_{}_beams_{}.pkl".format(
-                args.dataset_key, x, args.val_dataset, args.val_dataset, args.clean_model_name,
-                len(val_summaries), args.num_beams
-            )
-            print("BLEU path: {}".format(path))
+            path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/bleu/{args.val_dataset}/{args.val_dataset}_bleu_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+            print(f"BLEU path: {path}")
             with open(path, "rb") as f:
                 bleu_scores = pickle.load(f)
                 bleu_scores = bleu_scores[:args.post_max_val_size]
@@ -125,11 +114,11 @@ def get_bleu_scores(val_summaries, val_pseudo_labels, args):
 def get_bert_scores(val_summaries, val_pseudo_labels, args):
     print("\nComputing BERTScore scores:")
     if args.compute_bertscore:
-        path = "../../summary_scores/{}/{}/metrics/bertscore/{}/{}_bertscores_{}_{}_beams_{}.pkl".format(
-            args.dataset_key, args.generation_methods[0], args.val_dataset, args.val_dataset, args.clean_model_name,
-            len(val_summaries), args.num_beams
-        )
-        print("BS path: {}".format(path))
+        os.makedirs(
+            f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/bertscore/{args.val_dataset}",
+            exist_ok=True)
+        path = f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/bertscore/{args.val_dataset}/{args.val_dataset}_bertscore_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+        print(f"BS path: {path}")
         bert_scores = []
         top_lengths, selected_lengths = [], []
         for j in range(len(val_summaries[0])):
@@ -151,7 +140,7 @@ def get_bert_scores(val_summaries, val_pseudo_labels, args):
                     p, r, f1 = score(block_summaries, block_pseudo_labels, lang='en', verbose=False)
                     bs = list(f1.cpu().numpy())
                     all_bs += bs
-                with open("temp_bs/{}_{}_beams_{}_bertscore_{}.pkl".format(args.dataset_name, len(val_summaries), args.num_beams, j), "wb") as f:
+                with open(f"temp_bs/{args.dataset_name}_{len(val_summaries)}_beams_{args.num_beams}_bertscore_{f}.pkl", "wb") as f:
                     pickle.dump(all_bs, f)
                 bert_scores.append(all_bs)
             ### v1
@@ -169,19 +158,16 @@ def get_bert_scores(val_summaries, val_pseudo_labels, args):
             selected_lengths.append(lengths_i[np.argmax(scores_i)])
             all_bert_scores.append(scores_i)
         all_bert_scores = np.array(all_bert_scores)
-        print("Lengths for top beam: {:.2f}".format(np.mean(top_lengths)))
-        print("Lengths for reranked summary: {:.2f}".format(np.mean(selected_lengths)))
+        print(f"Lengths for top beam: {np.mean(top_lengths):.2f}")
+        print(f"Lengths for reranked summary: {np.mean(selected_lengths):.2f}")
         with open(path, "wb") as f:
             pickle.dump(all_bert_scores, f)
             print("saved the BS!")
     else:
         all_gen_bs = []
         for x in args.generation_methods:
-            path = "../../summary_scores/{}/{}/metrics/bertscore/{}/{}_bertscores_{}_{}_beams_{}.pkl".format(
-                args.dataset_key, x, args.val_dataset, args.val_dataset, args.clean_model_name,
-                len(val_summaries), args.num_beams
-            )
-            print("BS path: {}".format(path))
+            path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/bertscore/{args.val_dataset}/{args.val_dataset}_bertscore_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+            print(f"BS path: {path}")
             with open(path, "rb") as f:
                 all_bert_scores = pickle.load(f)
                 all_bert_scores = all_bert_scores[:args.post_max_val_size]
@@ -195,11 +181,11 @@ def get_bert_scores(val_summaries, val_pseudo_labels, args):
 def get_bart_scores(val_summaries, val_pseudo_labels, args):
     print("\nComputing BARTScore scores:")
     if args.compute_bartscore:
-        path = "../../summary_scores/{}/{}/metrics/bartscore/{}/{}_bartscores_{}_{}_beams_{}.pkl".format(
-            args.dataset_key, args.generation_methods[0], args.val_dataset, args.val_dataset, args.clean_model_name,
-            len(val_summaries), args.num_beams
-        )
-        print("BaS path: {}".format(path))
+        os.makedirs(
+            f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/bartscore/{args.val_dataset}",
+            exist_ok=True)
+        path = f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/bartscore/{args.val_dataset}/{args.val_dataset}_bartscore_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+        print(f"BaS path: {path}")
         bart_scorer = BARTScorer(device = args.device, checkpoint = 'facebook/bart-large-cnn')
         bart_scores = []
         for j in range(len(val_summaries[0])):
@@ -218,11 +204,8 @@ def get_bart_scores(val_summaries, val_pseudo_labels, args):
     else:
         all_gen_bas = []
         for x in args.generation_methods:
-            path = "../../summary_scores/{}/{}/metrics/bartscore/{}/{}_bartscores_{}_{}_beams_{}.pkl".format(
-                args.dataset_key, x, args.val_dataset, args.val_dataset, args.clean_model_name,
-                len(val_summaries), args.num_beams
-            )
-            print("BaS path: {}".format(path))
+            path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/bartscore/{args.val_dataset}/{args.val_dataset}_bartscore_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+            print(f"BaS path: {path}")
             all_bart_scores = pickle.load(open(path, "rb"))
             all_bart_scores = all_bart_scores[:args.post_max_val_size]
             print("loaded the BaS!")
@@ -235,11 +218,11 @@ def get_bart_scores(val_summaries, val_pseudo_labels, args):
 def get_bleurt_scores(val_summaries, val_pseudo_labels, args):
     print("\nComputing BLEURT scores:")
     if args.compute_bleurt:
-        path = "../../summary_scores/{}/{}/metrics/bleurt/{}/{}_bleurts_{}_{}_beams_{}.pkl".format(
-            args.dataset_key, args.generation_methods[0], args.val_dataset, args.val_dataset, args.clean_model_name,
-            len(val_summaries), args.num_beams
-        )
-        print("BLEURT path: {}".format(path))
+        os.makedirs(
+            f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/bleurt/{args.val_dataset}",
+            exist_ok=True)
+        path = f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/bleurt/{args.val_dataset}/{args.val_dataset}_bleurt_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+        print(f"BLEURT path: {path}")
         tokenizer = AutoTokenizer.from_pretrained("Elron/bleurt-base-512")
         model = AutoModelForSequenceClassification.from_pretrained("Elron/bleurt-base-512")
         model = model.to(args.device)
@@ -266,11 +249,8 @@ def get_bleurt_scores(val_summaries, val_pseudo_labels, args):
     else:
         all_gen_brts = []
         for x in args.generation_methods:
-            path = "../../summary_scores/{}/{}/metrics/bleurt/{}/{}_bleurts_{}_{}_beams_{}.pkl".format(
-                args.dataset_key, x, args.val_dataset, args.val_dataset, args.clean_model_name,
-                len(val_summaries), args.num_beams
-            )
-            print("BLEURT path: {}".format(path))
+            path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/bleurt/{args.val_dataset}/{args.val_dataset}_bleurt_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+            print(f"BLEURT path: {path}")
             bleurt_scores = pickle.load(open(path, "rb"))
             bleurt_scores = bleurt_scores[:args.post_max_val_size]
             print("loaded the BLEURT!")
@@ -286,11 +266,11 @@ def get_bleurt_scores(val_summaries, val_pseudo_labels, args):
 def get_diversity_scores(val_summaries, args):
     print("\nComputing diversity scores:")
     if args.compute_diversity:
-        path = "../../summary_scores/{}/{}/metrics/diversity/{}/{}_diversity_{}_{}_beams_{}.pkl".format(
-            args.dataset_key, args.generation_methods[0], args.val_dataset, args.val_dataset, args.clean_model_name,
-            len(val_summaries), args.num_beams
-        )
-        print("Diversity path: {}".format(path))
+        os.makedirs(
+            f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/diversity/{args.val_dataset}",
+            exist_ok=True)
+        path = f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/diversity/{args.val_dataset}/{args.val_dataset}_diversity_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+        print(f"Diversity path: {path}")
         diversity_scores = []
         for i in tqdm(range(len(val_summaries))):
             scores = []
@@ -322,11 +302,8 @@ def get_diversity_scores(val_summaries, args):
     else:
         all_gen_diversity = []
         for x in args.generation_methods:
-            path = "../../summary_scores/{}/{}/metrics/diversity/{}/{}_diversity_{}_{}_beams_{}.pkl".format(
-                args.dataset_key, x, args.val_dataset, args.val_dataset, args.clean_model_name,
-                len(val_summaries), args.num_beams
-            )
-            print("Diversity path: {}".format(path))
+            path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/diversity/{args.val_dataset}/{args.val_dataset}_diversity_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+            print(f"Diversity path: {path}")
             with open(path, "rb") as f:
                 diversity_scores = pickle.load(f)
                 diversity_scores = diversity_scores[:args.post_max_val_size]
@@ -340,11 +317,11 @@ def get_diversity_scores(val_summaries, args):
 def get_length_scores(val_texts, val_summaries, args):
     print("\nComputing length scores:")
     if args.compute_length:
-        path = "../../summary_scores/{}/{}/metrics/length/{}/{}_length_{}_{}_beams_{}.pkl".format(
-            args.dataset_key, args.generation_methods[0], args.val_dataset, args.val_dataset, args.clean_model_name,
-            len(val_summaries), args.num_beams
-        )
-        print("Length path: {}".format(path))
+        os.makedirs(
+            f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/length/{args.val_dataset}",
+            exist_ok=True)
+        path = f"../../summary_scores/{args.dataset_key}/{args.generation_methods[0]}/metrics/length/{args.val_dataset}/{args.val_dataset}_length_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+        print(f"Length path: {path}")
         length_scores = []
         for i in tqdm(range(len(val_summaries))):
             text = val_texts[i].lower()
@@ -366,11 +343,8 @@ def get_length_scores(val_texts, val_summaries, args):
     else:
         all_gen_lens = []
         for x in args.generation_methods:
-            path = "../unsupervised_reranking_data/{}/{}/metrics/length/{}/{}_length_{}_{}_beams_{}.pkl".format(
-                args.dataset_key, x, args.val_dataset, args.val_dataset, args.clean_model_name,
-                len(val_summaries), args.num_beams
-            )
-            print("Length path: {}".format(path))
+            path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/length/{args.val_dataset}/{args.val_dataset}_length_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
+            print(f"Length path: {path}")
             with open(path, "rb") as f:
                 length_scores = pickle.load(f)
                 length_scores = length_scores[:args.post_max_val_size]

@@ -3,7 +3,6 @@ from transformers import PegasusTokenizer, PegasusForConditionalGeneration, \
     BartTokenizerFast, BartForConditionalGeneration
 
 
-
 def build_tokenizer(args):
     tokenizer = None
     if args.model_type.startswith("pegasus"):

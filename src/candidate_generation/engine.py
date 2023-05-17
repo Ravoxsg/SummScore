@@ -3,7 +3,6 @@ import torch
 import gc
 
 
-
 def beam_search_step(batch, tokenizer, model, args):
     # 1 - beam search
     if args.generation_method == "beam_search":

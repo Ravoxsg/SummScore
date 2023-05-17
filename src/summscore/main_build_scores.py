@@ -134,7 +134,7 @@ def main(args):
     size = min(args.val_size, args.max_val_size)
 
     # load data
-    path = "../../summaries/{}/{}/{}/".format(args.dataset_key, args.val_dataset, args.generation_methods[0])
+    path = f"../../summaries/{args.dataset_key}/{args.val_dataset}/{args.generation_methods[0]}/"
     texts_path = path + f"{args.val_dataset}_texts_{size}_beams_{args.num_beams}.pkl"
     texts = pickle.load(open(texts_path, "rb"))
     summaries_path = path + f"{args.val_dataset}_summaries_{args.clean_model_name}_{size}_beams_{args.num_beams}.pkl"

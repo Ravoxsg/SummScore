@@ -19,7 +19,6 @@ from dataset import Dataset
 from engine import beam_search_step
 
 
-
 openai.api_key = "xxx" # todo: fill in your OpenAI key here!!
 
 parser = argparse.ArgumentParser()
@@ -116,19 +115,11 @@ print("*"*50)
 print(args)
 
 
-
 def main(args):
     # seed
     seed_everything(args.seed)
 
-    if not(os.path.isdir("../../summaries/")):
-        os.makedirs("../../summaries/")
-    if not(os.path.isdir("../../summaries/{}/".format(args.dataset_key))):
-        os.makedirs("../../summaries/{}/".format(args.dataset_key))
-    if not(os.path.isdir("../../summaries/{}/{}/".format(args.dataset_key, args.val_dataset))):
-        os.makedirs("../../summaries/{}/{}/".format(args.dataset_key, args.val_dataset))
-    if not(os.path.isdir("../../summaries/{}/{}/{}/".format(args.dataset_key, args.val_dataset, args.generation_method))):
-        os.makedirs("../../summaries/{}/{}/{}/".format(args.dataset_key, args.val_dataset, args.generation_method))
+    os.makedirs(f"../../summaries/{args.dataset_key}/{args.val_dataset}/{args.generation_method}/", exist_ok=True)
 
     # device
     device = torch.device("cpu")
@@ -172,9 +163,7 @@ def main(args):
             try:
                 responsefromgpt = openai.ChatCompletion.create(
                     model=f"{args.gpt_model}",
-                    messages=[
-                        {"role": "user", "content": prompt},
-                    ],
+                    messages=[{"role": "user", "content": prompt}],
                     max_tokens=args.max_summary_length,
                     temperature=args.temperature,
                     top_p=args.top_p,
@@ -217,7 +206,7 @@ def main(args):
     # export
     num_candidates = len(summaries[0])
     if args.save_summaries:
-        path = "../../summaries/{}/{}/{}/".format(args.dataset_key, args.val_dataset, args.generation_method)
+        path = f"../../summaries/{args.dataset_key}/{args.val_dataset}/{args.generation_method}/"
         with open(path + f"{args.val_dataset}_texts_{len(texts)}_beams_{num_candidates}.pkl", "wb") as f:
             pickle.dump(texts, f)
         with open(path + f"{args.val_dataset}_summaries_{args.clean_model_name}_{len(texts)}_beams_{num_candidates}.pkl", "wb") as f:

@@ -18,7 +18,6 @@ from common.bart_score import BARTScorer
 from common.evaluation import overall_eval
 
 
-
 def build_scores(texts, summaries, args):
     if "rouge_1" in args.metrics_to_use.keys() or "rouge_2" in args.metrics_to_use.keys() or "rouge_l" in args.metrics_to_use.keys():
         rouge_scores = get_rouge_scores(summaries, texts, args)
@@ -146,8 +145,8 @@ def get_best_random_weights(all_scores, n, texts, summaries, labels, args):
     best_scores = all_mean_scores[best_idx]
     best_weights = all_weights[best_idx]
     for j in range(len(best_idx)):
-        clean_weights = ["{:.4f}".format(x) for x in best_weights[j]]
-        print("Rank {}, Mean R: {:.2f}, Weights: {}".format(j+1, best_scores[j], clean_weights))
+        clean_weights = [f"{x:.4f}" for x in best_weights[j]]
+        print(f"Rank {j+1}, Mean R: {best_scores[j]:.2f}, Weights: {clean_weights}")
 
 
 def get_best_grid_weights_hierarchical(all_scores, texts, summaries, labels, args):
@@ -159,7 +158,7 @@ def get_best_grid_weights_hierarchical(all_scores, texts, summaries, labels, arg
         idx_subset = args.hierarchical_partition[i]
         if len(idx_subset) > 1:
             print("\n" + "*"*50)
-            print("Running a grid search on the subset {}".format(idx_subset))
+            print(f"Running a grid search on the subset {idx_subset}")
             all_scores_i = all_scores[:, idx_subset, :]
             names_i = [names[x] for x in idx_subset]
             best_weights_i = get_best_grid_weights(all_scores_i, names_i, texts, summaries, labels, args)
@@ -168,7 +167,7 @@ def get_best_grid_weights_hierarchical(all_scores, texts, summaries, labels, arg
             for j in range(all_scores_i.shape[1]):
                 predicted_scores += all_scores_i[:, j, :] * best_weights_i[j]
             reduced_all_scores.append(np.expand_dims(predicted_scores, 1))
-            reduced_names.append("reduced_{}".format(reduced_count))
+            reduced_names.append(f"reduced_{reduced_count}")
             reduced_count += 1
         else:
             all_best_weights.append([1])
@@ -181,14 +180,14 @@ def get_best_grid_weights_hierarchical(all_scores, texts, summaries, labels, arg
     print("Global grid search")
     best_global_weights = get_best_grid_weights(reduced_all_scores, reduced_names, texts, summaries, labels, args)
     print("\nRecap of best weights")
-    print("Sets of best weights for each set: {}".format(all_best_weights))
-    print("Set of best global weights: {}".format(best_global_weights))
+    print(f"Sets of best weights for each set: {all_best_weights}")
+    print(f"Set of best global weights: {best_global_weights}")
     expanded_weights = []
     for i in range(len(all_best_weights)):
         for j in range(len(all_best_weights[i])):
             expanded_weights.append(all_best_weights[i][j] * best_global_weights[i])
-    clean_weights = ["{:.4f}".format(x) for x in expanded_weights]
-    print("Set of expanded best weights: {}".format(clean_weights))
+    clean_weights = [f"{x:.4f}" for x in expanded_weights]
+    print(f"Set of expanded best weights: {clean_weights}")
 
     return expanded_weights
 
@@ -228,7 +227,7 @@ def get_best_grid_weights(all_scores, names, texts, summaries, labels, args):
         if to_keep == False:
             continue
         all_params.append(params)
-    print("# Coefficient combinations: {}".format(len(all_params)))
+    print(f"# Coefficient combinations: {len(all_params)}")
 
     all_weights = [[x[k] for k in x.keys()] for x in all_params]
     all_weights = np.array(all_weights)
@@ -260,7 +259,7 @@ def get_best_grid_weights(all_scores, names, texts, summaries, labels, args):
         if mean_r == np.max(np.array(all_mean_scores)):
             print("!!!New best score!!")
             idx = np.argmax(np.array(all_mean_scores))
-            print("Best mean R: {:.2f} for weights: {} @ iter {}".format(all_mean_scores[idx], all_weights[idx], idx + 1)),
+            print(f"Best mean R: {all_mean_scores[idx]:.2f} for weights: {all_weights[idx]} @ iter {idx+1}"),
     all_mean_scores = np.array(all_mean_scores)
     sort_idx = np.argsort(all_mean_scores)[::-1]
     best_idx = sort_idx[:10]
@@ -268,9 +267,9 @@ def get_best_grid_weights(all_scores, names, texts, summaries, labels, args):
     best_weights = all_weights[best_idx]
     for j in range(len(best_idx)):
         clean_weights = ["{:.4f}".format(x) for x in best_weights[j]]
-        print("Rank {}, Mean R: {:.2f}, Weights: {}".format(j + 1, best_scores[j], clean_weights))
+        print(f"Rank {j+1}, Mean R: {best_scores[j]:.2f}, Weights: {clean_weights}")
     tb = time()
-    print("Total time: {:.2f}, avg time / param set: {:.2f}".format(tb - ta, (tb - ta) / len(all_weights)))
+    print(f"Total time: {tb-ta:.2f}, avg time / param set: {(tb - ta) / len(all_weights):.2f}")
 
     return best_weights[0]
 
