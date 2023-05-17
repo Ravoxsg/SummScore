@@ -17,8 +17,7 @@ from rouge_score import rouge_scorer
 from common.utils import seed_everything
 from common.evaluation import overall_eval
 from score_sentences import get_salient_sentences
-from scoring import get_best_grid_weights_hierarchical, get_manual_weights_idx
-from engine import build_scores
+from engine import build_scores, get_best_grid_weights_hierarchical, get_manual_weights_idx
 
 
 parser = argparse.ArgumentParser()
@@ -85,6 +84,14 @@ parser.add_argument('--normalize_metrics', type=bool, default=True)
 parser.add_argument('--normalization', type=str, default="gaussian", choices=["", "min-max", "gaussian"])
 
 # unsupervised re-ranking
+# set the "compute" option to False
+parser.add_argument('--compute_rouge', type = bool, default = False)
+parser.add_argument('--compute_bleu', type = bool, default = False)
+parser.add_argument('--compute_bertscore', type = bool, default = False)
+parser.add_argument('--compute_bartscore', type = bool, default = False)
+parser.add_argument('--compute_bleurt', type = bool, default = False)
+parser.add_argument('--compute_diversity', type = bool, default = False)
+parser.add_argument('--compute_length', type = bool, default = False)
 # manual weights
 parser.add_argument('--manual_weights_stat', type=str, default="mean")
 parser.add_argument('--n_candidates', type=int, default=3)
@@ -112,13 +119,14 @@ parser.add_argument('--eval_new_ngram', type=bool, default=False)
 parser.add_argument('--eval_target_abstractiveness_recall', type=bool, default=False)
 parser.add_argument('--eval_rouge_text', type=bool, default=False)
 parser.add_argument('--check_correlation', type=bool, default=False)
+parser.add_argument('--stemmer', type=bool, default=True)
 
 args = parser.parse_args()
 
 dataset_keys = ["cnndm", "xsum", "wikihow", "samsum"]
-val_sizes = [13368, 11332, 4213, 5600, 818]
-test_sizes = [11490, 11334, 4222, 5580, 819]
-ratios = [60.8, 23.21, 23.28, 62.08, 23.42]
+val_sizes = [13368, 11332, 5600, 818]
+test_sizes = [11490, 11334, 5580, 819]
+ratios = [60.8, 23.21, 62.08, 23.42]
 
 idx = dataset_keys.index(args.dataset_key)
 
@@ -153,7 +161,7 @@ def main(args):
     texts = pickle.load(open(texts_path, "rb"))
     summaries_path = path + f"{args.val_dataset}_summaries_{args.clean_model_name}_{size}_beams_{args.num_beams}.pkl"
     summaries = pickle.load(open(summaries_path, "rb"))
-    labels_path = path + f"{args.val_dataset}_labels_{args.clean_model_name}_{size}_beams_{args.num_beams}.pkl"
+    labels_path = path + f"{args.val_dataset}_labels_{size}_beams_{args.num_beams}.pkl"
     labels = pickle.load(open(labels_path, "rb"))
 
     # evaluate the top beam

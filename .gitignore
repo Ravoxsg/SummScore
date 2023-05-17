@@ -5,6 +5,7 @@ src/test_permutations/.DS_STORE
 
 src/common/__pycache__/*
 src/candidate_generation/__pycache__/*
+src/summscore/__pycache__/*
 
 summaries/*
 summary_scores/*
