@@ -8,10 +8,10 @@ def build_tokenizer(args):
     tokenizer = None
     if args.model_type.startswith("pegasus"):
         print("\nUsing Pegasus tokenizer")
-        tokenizer = PegasusTokenizer.from_pretrained(args.model, cache_dir = args.cache_dir)
+        tokenizer = PegasusTokenizer.from_pretrained("google/pegasus-large", cache_dir = args.cache_dir)
     elif args.model_type.startswith("bart"):
         print("\nUsing Bart tokenizer")
-        tokenizer = BartTokenizerFast.from_pretrained(args.model, cache_dir = args.cache_dir)
+        tokenizer = BartTokenizerFast.from_pretrained("facebook/bart-large", cache_dir = args.cache_dir)
 
     return tokenizer
 

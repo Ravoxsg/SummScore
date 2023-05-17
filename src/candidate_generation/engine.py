@@ -68,8 +68,15 @@ def beam_search_step(batch, tokenizer, model, args):
             early_stopping=True
         )
     generated = tokenizer.batch_decode(summary_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-
+    
+    summaries = []
+    for i in range(batch["text_inputs"]["input_ids"].shape[0]):
+        start = i * args.num_beams
+        end = (i+1) * args.num_beams
+        summaries_i = generated[start:end]
+        summaries.append(summaries_i)
+    
     del summary_ids
     gc.collect()
 
-    return generated
+    return summaries

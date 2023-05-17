@@ -22,11 +22,6 @@ def overall_eval(val_texts, val_summaries, val_labels, args):
         bs = bertscore_eval(val_summaries, val_labels, args)
         all_scores.append(bs)
         all_score_names.append("BERTScore")
-    # BARTScore
-    if args.eval_bartscore:
-        bas = bartscore_eval(val_summaries, val_labels, args)
-        all_scores.append(bas)
-        all_score_names.append("BARTScore")
     # Abstractiveness
     if args.eval_new_ngram:
         new_ngram_eval(val_texts, val_summaries, args)
