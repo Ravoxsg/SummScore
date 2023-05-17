@@ -86,37 +86,12 @@ parser.add_argument('--stemmer', type = bool, default = True)
 
 args = parser.parse_args()
 
-
 dataset_keys = ["cnndm", "xsum", "wikihow", "samsum"]
-dataset_names = ["ccdv/cnn_dailymail", "xsum", "wikihow", "samsum"]
-dataset_versions = ["3.0.0", "default", "all", "samsum"]
-text_keys = ["article", "document", "text", "dialogue"]
-summary_keys = ["highlights", "summary", "headline", "summary"]
-max_lengths = [1024, 512, 512, 512]
-max_summary_lengths = [128, 64, 128, 64]
-length_penalties_pegasus = [0.8, 0.8, 0.6, 0.8]
-length_penalties_bart = [1.0, 1.0, 1.0, 1.0]
-no_repeat_ngram_sizes_pegasus = [0, 3, 0, 0]
-no_repeat_ngram_sizes_bart = [3, 3, 3, 3]
-ns = [3, 1, 3, 2]
 val_sizes = [13368, 11332, 5600, 818]
 test_sizes = [11490, 11334, 5580, 819]
 
 idx = dataset_keys.index(args.dataset_key)
 
-args.dataset_name = dataset_names[idx]
-args.dataset_version = dataset_versions[idx]
-args.text_key = text_keys[idx]
-args.summary_key = summary_keys[idx]
-args.max_length = max_lengths[idx]
-args.max_summary_length = max_summary_lengths[idx]
-if args.model_type == "pegasus":
-    args.length_penalty = length_penalties_pegasus[idx]
-    args.no_repeat_ngram_size = no_repeat_ngram_sizes_pegasus[idx]
-elif args.model_type == "bart":
-    args.length_penalty = length_penalties_bart[idx]
-    args.no_repeat_ngram_size = no_repeat_ngram_sizes_bart[idx]
-args.n = ns[idx]
 if args.val_dataset == "val":
     args.val_size = val_sizes[idx]
 elif args.val_dataset == "test":
@@ -131,9 +106,8 @@ def main(args):
     # seed
     seed_everything(args.seed)
 
-    size = min(args.val_size, args.max_val_size)
-
     # load data
+    size = min(args.val_size, args.max_val_size)
     path = f"../../summaries/{args.dataset_key}/{args.val_dataset}/{args.generation_methods[0]}/"
     texts_path = path + f"{args.val_dataset}_texts_{size}_beams_{args.num_beams}.pkl"
     texts = pickle.load(open(texts_path, "rb"))

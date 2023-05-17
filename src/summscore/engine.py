@@ -62,27 +62,6 @@ def build_scores(texts, summaries, args):
     return all_scores
 
 
-def get_simple_final_idx(all_scores, method, args):
-    final_idx = []
-    for i in tqdm(range(all_scores.shape[0])):
-        all_scores_i = all_scores[i, :, :]
-        candidates_scores = []
-        for j in range(all_scores_i.shape[1]):
-            candidates_scores_j = all_scores_i[:, j]
-            if method == "mean":
-                candidates_score = np.mean(candidates_scores_j)
-            elif method == "hmean":
-                candidates_score = hmean(candidates_scores_j)
-            elif method == "gmean":
-                candidates_score = gmean(candidates_scores_j)
-            candidates_scores.append(candidates_score)
-        candidates_scores = np.array(candidates_scores)
-        best_idx = np.argmax(candidates_scores)
-        final_idx.append(best_idx)
-
-    return final_idx
-
-
 def get_manual_weights_idx(all_scores, method, args, weights=[]):
     final_idx, all_candidates_scores = [], []
     if weights == []:
@@ -106,47 +85,6 @@ def get_manual_weights_idx(all_scores, method, args, weights=[]):
         final_idx.append(best_idx)
 
     return final_idx, all_candidates_scores
-
-
-def get_best_random_weights(all_scores, n, texts, summaries, labels, args):
-    all_mean_scores = []
-    all_weights = []
-    args.eval_rouge = True
-    args.eval_bertscore = False
-    args.eval_bartscore = False
-    for t in range(n):
-        weights = np.random.rand(all_scores.shape[1])
-        s = np.sum(weights)
-        weights /= s
-        for j in range(len(weights)):
-            weights[j] = round(weights[j], 3)
-        final_idx = []
-        for i in range(all_scores.shape[0]):
-            all_scores_i = all_scores[i, :, :]
-            candidates_scores = []
-            for j in range(all_scores_i.shape[1]):
-                candidates_scores_j = weights * all_scores_i[:, j]
-                candidates_score = np.mean(candidates_scores_j)
-                candidates_scores.append(candidates_score)
-            candidates_scores = np.array(candidates_scores)
-            best_idx = np.argmax(candidates_scores)
-            final_idx.append(best_idx)
-        new_summaries = [summaries[i][final_idx[i]] for i in range(len(final_idx))]
-        scores, _ = overall_eval(texts, new_summaries, labels, args, display=False)
-        # print("Weights: {}".format(weights))
-        r1, r2, rl = scores[0], scores[1], scores[2]
-        mean_r = (np.mean(r1) + np.mean(r2) + np.mean(rl)) / 3
-        all_mean_scores.append(mean_r)
-        all_weights.append(weights)
-    all_mean_scores = np.array(all_mean_scores)
-    all_weights = np.array(all_weights)
-    sort_idx = np.argsort(all_mean_scores)[::-1]
-    best_idx = sort_idx[:10]
-    best_scores = all_mean_scores[best_idx]
-    best_weights = all_weights[best_idx]
-    for j in range(len(best_idx)):
-        clean_weights = [f"{x:.4f}" for x in best_weights[j]]
-        print(f"Rank {j+1}, Mean R: {best_scores[j]:.2f}, Weights: {clean_weights}")
 
 
 def get_best_grid_weights_hierarchical(all_scores, texts, summaries, labels, args):
