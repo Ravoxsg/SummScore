@@ -100,7 +100,6 @@ def get_bleu_scores(val_summaries, val_pseudo_labels, args):
             print(f"BLEU path: {path}")
             with open(path, "rb") as f:
                 bleu_scores = pickle.load(f)
-                bleu_scores = bleu_scores[:args.post_max_val_size]
                 all_gen_bleus.append(bleu_scores)
                 print("loaded the ROUGE!")
         bleu_scores = np.concatenate(all_gen_bleus, axis = 1)
@@ -170,7 +169,6 @@ def get_bert_scores(val_summaries, val_pseudo_labels, args):
             print(f"BS path: {path}")
             with open(path, "rb") as f:
                 all_bert_scores = pickle.load(f)
-                all_bert_scores = all_bert_scores[:args.post_max_val_size]
                 print("loaded the BS!")
                 all_gen_bs.append(all_bert_scores)
         all_bert_scores = np.concatenate(all_gen_bs, axis = 1)
@@ -207,7 +205,6 @@ def get_bart_scores(val_summaries, val_pseudo_labels, args):
             path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/bartscore/{args.val_dataset}/{args.val_dataset}_bartscore_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
             print(f"BaS path: {path}")
             all_bart_scores = pickle.load(open(path, "rb"))
-            all_bart_scores = all_bart_scores[:args.post_max_val_size]
             print("loaded the BaS!")
             all_gen_bas.append(all_bart_scores)
         all_bart_scores = np.concatenate(all_gen_bas, axis = 1)
@@ -252,7 +249,6 @@ def get_bleurt_scores(val_summaries, val_pseudo_labels, args):
             path = f"../../summary_scores/{args.dataset_key}/{x}/metrics/bleurt/{args.val_dataset}/{args.val_dataset}_bleurt_{args.clean_model_name}_{len(val_summaries)}_beams_{args.num_beams}.pkl"
             print(f"BLEURT path: {path}")
             bleurt_scores = pickle.load(open(path, "rb"))
-            bleurt_scores = bleurt_scores[:args.post_max_val_size]
             print("loaded the BLEURT!")
             all_gen_brts.append(bleurt_scores)
         bleurt_scores = np.concatenate(all_gen_brts, axis = 1)
@@ -295,7 +291,6 @@ def get_diversity_scores(val_summaries, args):
             scores = np.expand_dims(scores, 0)
             diversity_scores.append(scores)
         diversity_scores = np.concatenate(diversity_scores)
-        diversity_scores = diversity_scores[:args.post_max_val_size]
         with open(path, "wb") as f:
             pickle.dump(diversity_scores, f)
             print("saved the diversity!")
@@ -306,7 +301,6 @@ def get_diversity_scores(val_summaries, args):
             print(f"Diversity path: {path}")
             with open(path, "rb") as f:
                 diversity_scores = pickle.load(f)
-                diversity_scores = diversity_scores[:args.post_max_val_size]
                 print("loaded the diversity!")
                 all_gen_diversity.append(diversity_scores)
         diversity_scores = np.concatenate(all_gen_diversity, axis = 1)
@@ -336,7 +330,6 @@ def get_length_scores(val_texts, val_summaries, args):
             scores = np.expand_dims(scores, 0)
             length_scores.append(scores)
         length_scores = np.concatenate(length_scores)
-        length_scores = length_scores[:args.post_max_val_size]
         with open(path, "wb") as f:
             pickle.dump(length_scores, f)
             print("saved the length!")
@@ -347,7 +340,6 @@ def get_length_scores(val_texts, val_summaries, args):
             print(f"Length path: {path}")
             with open(path, "rb") as f:
                 length_scores = pickle.load(f)
-                length_scores = length_scores[:args.post_max_val_size]
                 print("loaded the length!")
                 all_gen_lens.append(length_scores)
         length_scores = np.concatenate(all_gen_lens, axis = 1)

@@ -101,6 +101,7 @@ no_repeat_ngram_sizes_bart = [3, 3, 3, 3]
 ns = [3, 1, 3, 2]
 val_sizes = [13368, 11332, 5600, 818]
 test_sizes = [11490, 11334, 5580, 819]
+ratios =  [60.8, 23.21, 23.28, 62.08, 23.42]
 
 idx = dataset_keys.index(args.dataset_key)
 
@@ -121,6 +122,7 @@ if args.val_dataset == "val":
     args.val_size = val_sizes[idx]
 elif args.val_dataset == "test":
     args.val_size = test_sizes[idx]
+args.ratio = ratios[idx]
 
 print("*"*50)
 print(args)
@@ -130,6 +132,13 @@ print(args)
 def main(args):
     # seed
     seed_everything(args.seed)
+
+    # device
+    device = torch.device("cpu")
+    if args.cuda and torch.cuda.is_available():
+        device = torch.device("cuda")
+    args.device = device
+    print(f"Using device: {device}")
 
     size = min(args.val_size, args.max_val_size)
 
