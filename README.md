@@ -44,8 +44,8 @@ Now we can launch SummScore training, which will estimate features coefficients 
 CUDA_VISIBLE_DEVICES=0 bash main_reranking.sh
 ```
 
-The code lets you choose among several fine-tuned models hosted on HuggingFace. You can also use our own checkpoints:
-BART fine-tuned on WikiHow: <a href="https://drive.google.com/file/d/1Rb03FYE612wMy9E5GvwxxXfi-SxZPfg3/view?usp=share_link" style = "text-decoration:none;color:#4682B4">here</a>   
+The code lets you choose among several fine-tuned models hosted on HuggingFace. You can also use our own checkpoints:  
+BART fine-tuned on WikiHow: <a href="https://drive.google.com/file/d/1Rb03FYE612wMy9E5GvwxxXfi-SxZPfg3/view?usp=share_link" style = "text-decoration:none;color:#4682B4">here</a>    
 PEGASUS fine-tuned on SAMSum: <a href="https://drive.google.com/file/d/1dcDAcg-qTqaP5xWa1f-EUvfxORHTCVps/view?usp=share_link" style = "text-decoration:none;color:#4682B4">here</a>   
 BART fine-tuned on SAMSum: <a href="https://drive.google.com/file/d/1OSMws143gfNphHL3smTD7JuDVaKtm5p8/view?usp=share_link" style = "text-decoration:none;color:#4682B4">here</a>   
 
