@@ -56,7 +56,7 @@ parser.add_argument('--load_model_path', type = str, default = "finetuned_checkp
 # summary generation
 parser.add_argument('--val_dataset', type=str, default = "val", choices = ["val", "test"])
 parser.add_argument('--max_val_size', type = int, default = 1000)
-parser.add_argument('--inference_bs', type = int, default = 2)
+parser.add_argument('--inference_bs', type = int, default = 6)
 parser.add_argument('--save_summaries', type = bool, default = True)
 parser.add_argument('--generation_method', type = str, default = "beam_search",
                     choices = ["beam_search", "diverse_beam_search", "top_p_sampling", "top_k_sampling"])
@@ -74,6 +74,7 @@ parser.add_argument('--eval_rouge', type = bool, default = True)
 parser.add_argument('--eval_bertscore', type = bool, default = False)
 parser.add_argument('--eval_new_ngram', type = bool, default = True)
 parser.add_argument('--eval_rouge_text', type = bool, default = False)
+parser.add_argument('--n_show_summaries', type=int, default=0)
 
 args = parser.parse_args()
 
@@ -102,6 +103,8 @@ args.max_summary_length = max_summary_lengths[idx]
 if args.model_type == "pegasus":
     args.length_penalty = length_penalties_pegasus[idx]
     args.no_repeat_ngram_size = no_repeat_ngram_sizes_pegasus[idx]
+    if "unsupervised" in args.model_name:
+        args.no_repeat_ngram_size = 3
 elif args.model_type == "bart":
     args.length_penalty = length_penalties_bart[idx]
     args.no_repeat_ngram_size = no_repeat_ngram_sizes_bart[idx]
