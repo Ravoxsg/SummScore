@@ -15,21 +15,18 @@ from common.bart_score import BARTScorer
 from common.utils import seed_everything
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--seed', type=int, default=42)
-args = parser.parse_args()
-args.device = torch.device("cuda")
-
-
 # seed
-seed_everything(42)
+seed_everything(44)
 
 # data
 dataset_name = "ccdv/cnn_dailymail"
+dataset_version = "3.0.0"
+dataset_args = [dataset_name, dataset_version]
 subset = "test"
 text_key = "article"
 summary_key = "highlights"
-dataset = load_dataset(dataset_name, cache_dir="../../hf_datasets/")
+mean_length = 60.8
+dataset = load_dataset(*dataset_args, cache_dir="../../../hf_datasets/")
 dataset = dataset[subset]
 texts = dataset[text_key]
 p = np.random.permutation(len(texts))
@@ -46,17 +43,18 @@ print("\nLabel:")
 print(label)
 
 # model: we take PEGASUS fine-tuned on XSum, which we transfer to CNN/DM
-tokenizer = AutoTokenizer.from_pretrained("google/pegasus-xsum")
-model = AutoModelForSeq2SeqLM.from_pretrained("google/pegasus-xsum")
+tokenizer = AutoTokenizer.from_pretrained("google/pegasus-xsum", cache_dir="../../../hf_models/pegasus=xsum/")
+model = AutoModelForSeq2SeqLM.from_pretrained("google/pegasus-xsum", cache_dir="../../../hf_models/pegasus-xsum/")
+model = model.cuda()
 
 # inference to get summary candidates
 tok_text = tokenizer(text, return_tensors="pt", padding="max_length", max_length=1024)
-tok_text["input_ids"] = tok_text["input_ids"]
-tok_text["attention_mask"] = tok_text["attention_mask"]
+tok_text["input_ids"] = tok_text["input_ids"][:, :512]
+tok_text["attention_mask"] = tok_text["attention_mask"][:, :512]
 with torch.no_grad():
     generated = model.generate(
-        input_ids=tok_text["input_ids"].to(args.device),
-        attention_mask=tok_text["attention_mask"].to(args.device),
+        input_ids=tok_text["input_ids"].cuda(),
+        attention_mask=tok_text["attention_mask"].cuda(),
         num_beams=15,
         num_return_sequences=15,
         repetition_penalty=1.0,
@@ -85,10 +83,8 @@ for j in range(len(candidates)):
     r1s.append(r1)
     r2s.append(r2)
     # BLEU
-    bleu_j = bleu_score.sentence_bleu([text.lower().strip().split()], candidates[j].lower().strip().split())
-    # BERTScore
-    # BARTScore
-    # BLEURT
+    bleu = bleu_score.sentence_bleu([text.lower().strip().split()], candidates[j].lower().strip().split())
+    bleus.append(bleu)
     # Diversity
     words = word_tokenize(candidates[j])
     diverse_1 = len(np.unique(np.array(words)))
@@ -103,37 +99,37 @@ for j in range(len(candidates)):
     diversities.append(diversity)
     # Length
     length = len(words)
-    length = np.abs(args.ratio - length)
+    length = np.abs(mean_length - length)
     length = 1 / length
     lengths.append(length)
 r1s, r2s, bleus, diversities, lengths = np.array(r1s), np.array(r2s), np.array(bleus), np.array(diversities), np.array(lengths)
-all_scores.append(np.expand_dims(r1s, 0))
-all_scores.append(np.expand_dims(r2s, 0))
-all_scores.append(np.expand_dims(bleus, 0))
-all_scores.append(np.expand_dims(diversities, 0))
-all_scores.append(np.expand_dims(lengths, 0))
+all_scores.append(np.expand_dims(r1s, 1))
+all_scores.append(np.expand_dims(r2s, 1))
+all_scores.append(np.expand_dims(bleus, 1))
+all_scores.append(np.expand_dims(diversities, 1))
+all_scores.append(np.expand_dims(lengths, 1))
 # Semantic similarity features (BERTScore, BARTScore, BLEURT)
 # BERTScore
 p, r, f1 = score(candidates, [text] * len(candidates), lang='en', verbose=False)
 bertscores = f1.cpu().numpy()
-all_scores.append(np.expand_dims(bertscores, 0))
+all_scores.append(np.expand_dims(bertscores, 1))
 # BARTScore
-bart_scorer = BARTScorer(device = args.device, checkpoint = 'facebook/bart-large-cnn')
+bart_scorer = BARTScorer(device = "cuda", checkpoint = 'facebook/bart-large-cnn')
 bartscores = bart_scorer.score([text] * len(candidates), candidates)
-all_scores.append(np.expand_dims(bartscores, 0))
+all_scores.append(np.expand_dims(bartscores, 1))
 # BLEURT
 tokenizer = AutoTokenizer.from_pretrained("Elron/bleurt-base-512")
-model = AutoModelForSequenceClassification.from_pretrained("Elron/bleurt-base-512")
+model = AutoModelForSequenceClassification.from_pretrained("Elron/bleurt-base-512", cache_dir="../../../hf_models/bleurt/")
 model = model.cuda()
 model.eval()
 references = [text] * len(candidates)
 inputs = tokenizer(references, candidates, return_tensors="pt", padding=True, truncation=True, max_length=512)
-input_ids = inputs["input_ids"].to(args.device)
-attention_mask = inputs["attention_mask"].to(args.device)
-bleurts = [model(input_ids = input_ids[j:(j+1)], attention_mask = attention_mask[j:(j+1)])[0] for j in range(len(candidates))]
+input_ids = inputs["input_ids"].cuda()
+attention_mask = inputs["attention_mask"].cuda()
+bleurts = [model(input_ids = input_ids[j:(j+1)], attention_mask = attention_mask[j:(j+1)])[0][0].item() for j in range(len(candidates))]
 bleurts = np.array(bleurts)
-all_scores.append(np.expand_dims(bleurts, 0))
-all_scores = np.concatenate(all_scores, 0)
+all_scores.append(np.expand_dims(bleurts, 1))
+all_scores = np.concatenate(all_scores, 1)
 print(all_scores.shape)
 
 # apply re-raking -> can be found in Appendix G of the paper
