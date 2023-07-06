@@ -150,10 +150,7 @@ def main(args):
     if args.cuda and torch.cuda.is_available():
         device = torch.device("cuda")
     args.device = device
-    print("Using device: {}".format(device))
-
-    # ROUGE scorer
-    scorer = rouge_scorer.RougeScorer(['rouge1', 'rouge2', 'rougeLsum'], use_stemmer=args.stemmer)
+    print(f"Using device: {device}")
 
     # load data
     size = min(args.val_size, args.max_val_size)
