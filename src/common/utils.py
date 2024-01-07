@@ -3,7 +3,6 @@ import os
 import numpy as np
 import torch
 import pickle
-
 from tqdm import tqdm
 from rouge_score import rouge_scorer
 
@@ -15,6 +14,12 @@ def seed_everything(seed=42):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
+
+
+def boolean_string(s):
+    if s not in {'False', 'True'}:
+        raise ValueError('Not a valid boolean string')
+    return s == 'True'
 
 
 def check_data_pipe(loaders):

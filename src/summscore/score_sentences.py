@@ -1,15 +1,12 @@
 import sys
 import numpy as np
 import pickle
-
 sys.path.append("/data/mathieu/SummScore/src/") # todo: change to your folder path
-
 from nltk.tokenize import sent_tokenize
 from tqdm import tqdm
 from rouge_score import rouge_scorer
 
 from common.utils import compute_rs
-
 
 
 def get_salient_sentences(val_texts, val_labels, args):

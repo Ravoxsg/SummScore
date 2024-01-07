@@ -7,14 +7,12 @@ import copy
 import torch
 import pickle
 import numpy as np
-
 sys.path.append("/data/mathieu/SummScore/src/") # todo: change to your folder path
-
 from tqdm import tqdm
 # from time import time
 from rouge_score import rouge_scorer
 
-from common.utils import seed_everything
+from common.utils import seed_everything, boolean_string
 from common.evaluation import overall_eval
 from score_sentences import get_salient_sentences
 from engine import build_scores, get_best_grid_weights_hierarchical, get_manual_weights_idx
@@ -24,8 +22,8 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--seed', type=int, default=42)
 parser.add_argument('--mode', type=str, default="train", choices=["train", "eval"])
-parser.add_argument('--cuda', type=bool, default=True)
-parser.add_argument('--debug', type=bool, default=False)
+parser.add_argument('--cuda', type=boolean_string, default=True)
+parser.add_argument('--debug', type=boolean_string, default=False)
 parser.add_argument('--debug_size', type=int, default=30)
 
 # data
@@ -37,8 +35,8 @@ parser.add_argument('--generation_methods', type = list, default = [
     #"top_k_sampling",
 ])
 parser.add_argument('--val_dataset', type=str, default = "val", choices = ["val", "test"])
-parser.add_argument('--max_val_size', type = int, default = 1000)
-parser.add_argument('--num_beams', type = int, default = 20) # for beam search
+parser.add_argument('--max_val_size', type=int, default = 1000)
+parser.add_argument('--num_beams', type=int, default = 20) # for beam search
 parser.add_argument('--model_type', type=str, default="pegasus", choices=["pegasus","bart"])
 parser.add_argument('--clean_model_name', type=str, default = "pegasus_unsupervised",
                     choices = [
@@ -62,8 +60,8 @@ parser.add_argument('--pseudo_labels', type=str, default="random",
 parser.add_argument('--n_pseudo_sentences', type=int, default=3)
 parser.add_argument('--gsg_ratio', type=float, default=0.3)  # can be greater than 1
 parser.add_argument('--r_metric', type=str, default="r2")  # in ["r1", "r2", "rLsum"]
-parser.add_argument('--compute_rs', type=bool, default=False)
-parser.add_argument('--truncate_text', type=bool, default=True)
+parser.add_argument('--compute_rs', type=boolean_string, default=False)
+parser.add_argument('--truncate_text', type=boolean_string, default=True)
 parser.add_argument('--max_text_size', type=int, default=5000)
 
 # features
@@ -80,46 +78,46 @@ parser.add_argument('--metrics_to_use', type=dict, default={
     "diversity": 1.0,
     "length": 1.0,
 })
-parser.add_argument('--normalize_metrics', type=bool, default=True)
+parser.add_argument('--normalize_metrics', type=boolean_string, default=True)
 parser.add_argument('--normalization', type=str, default="gaussian", choices=["", "min-max", "gaussian"])
 
 # unsupervised re-ranking
 # set the "compute" option to False
-parser.add_argument('--compute_rouge', type = bool, default = False)
-parser.add_argument('--compute_bleu', type = bool, default = False)
-parser.add_argument('--compute_bertscore', type = bool, default = False)
-parser.add_argument('--compute_bartscore', type = bool, default = False)
-parser.add_argument('--compute_bleurt', type = bool, default = False)
-parser.add_argument('--compute_diversity', type = bool, default = False)
-parser.add_argument('--compute_length', type = bool, default = False)
+parser.add_argument('--compute_rouge', type=boolean_string, default = False)
+parser.add_argument('--compute_bleu', type=boolean_string, default = False)
+parser.add_argument('--compute_bertscore', type=boolean_string, default = False)
+parser.add_argument('--compute_bartscore', type=boolean_string, default = False)
+parser.add_argument('--compute_bleurt', type=boolean_string, default = False)
+parser.add_argument('--compute_diversity', type=boolean_string, default = False)
+parser.add_argument('--compute_length', type=boolean_string, default = False)
 # manual weights
 parser.add_argument('--manual_weights_stat', type=str, default="mean")
 parser.add_argument('--n_candidates', type=int, default=3)
 # finding weights
 parser.add_argument('--step', type=float, default=0.025)
 parser.add_argument('--n_weights_combinations', type=int, default=1000)
-parser.add_argument('--non_zero_weights', type=bool, default=False)
+parser.add_argument('--non_zero_weights', type=boolean_string, default=False)
 parser.add_argument('--non_zero_lists', type=list, default=[
     ["rouge_1", "rouge_2", "bleu"],
     ["bert_score", "bart_score", "bleurt"],
     ["diversity"],
     ["length"],
 ])
-parser.add_argument('--hierarchical_search', type=bool, default=True)
+parser.add_argument('--hierarchical_search', type=boolean_string, default=True)
 parser.add_argument('--hierarchical_partition', type=list, default=[
     [0, 1, 2], [3, 4, 5], [6], [7]
 ])
 
 # evaluation
-parser.add_argument('--eval_rouge', type=bool, default=True)
-parser.add_argument('--eval_bertscore', type=bool, default=False)
-parser.add_argument('--eval_bartscore', type=bool, default=False)
-parser.add_argument('--eval_ngram_copying', type=bool, default=False)
-parser.add_argument('--eval_new_ngram', type=bool, default=False)
-parser.add_argument('--eval_target_abstractiveness_recall', type=bool, default=False)
-parser.add_argument('--eval_rouge_text', type=bool, default=False)
-parser.add_argument('--check_correlation', type=bool, default=False)
-parser.add_argument('--stemmer', type=bool, default=True)
+parser.add_argument('--eval_rouge', type=boolean_string, default=True)
+parser.add_argument('--eval_bertscore', type=boolean_string, default=False)
+parser.add_argument('--eval_bartscore', type=boolean_string, default=False)
+parser.add_argument('--eval_ngram_copying', type=boolean_string, default=False)
+parser.add_argument('--eval_new_ngram', type=boolean_string, default=False)
+parser.add_argument('--eval_target_abstractiveness_recall', type=boolean_string, default=False)
+parser.add_argument('--eval_rouge_text', type=boolean_string, default=False)
+parser.add_argument('--check_correlation', type=boolean_string, default=False)
+parser.add_argument('--stemmer', type=boolean_string, default=True)
 parser.add_argument('--n_show_summaries', type=int, default=0)
 
 args = parser.parse_args()

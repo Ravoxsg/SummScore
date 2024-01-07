@@ -9,12 +9,10 @@ import pickle
 import datasets
 import openai
 from tqdm import tqdm
-
 sys.path.append("/data/mathieu/SummScore/src/") # todo: change to your folder path
 
-from common.utils import seed_everything
+from common.utils import seed_everything, boolean_string
 from engine import build_scores
-
 
 
 openai.api_key = "xxx" # todo: fill in your OpenAI key here!!
@@ -22,13 +20,13 @@ openai.api_key = "xxx" # todo: fill in your OpenAI key here!!
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--seed', type = int, default = 42)
-parser.add_argument('--cuda', type = bool, default = True)
-parser.add_argument('--debug', type = bool, default = False)
+parser.add_argument('--cuda', type = boolean_string, default = True)
+parser.add_argument('--debug', type = boolean_string, default = False)
 parser.add_argument('--debug_size', type = int, default = 10)
-parser.add_argument('--few_shot', type = bool, default = True)
+parser.add_argument('--few_shot', type = boolean_string, default = True)
 
 # data
-parser.add_argument('--dataset_key', type=str, default = "samsum", choices= ["cnndm", "xsum", "wikihow", "samsum"])
+parser.add_argument('--dataset_key', type = str, default = "samsum", choices= ["cnndm", "xsum", "wikihow", "samsum"])
 parser.add_argument('--generation_methods', type = list, default = [
     "beam_search",
     #"diverse_beam_search",
@@ -37,8 +35,8 @@ parser.add_argument('--generation_methods', type = list, default = [
 ])
 
 # model
-parser.add_argument('--model_type', type=str, default="pegasus", choices=["pegasus","bart"])
-parser.add_argument('--clean_model_name', type=str, default = "pegasus_unsupervised",
+parser.add_argument('--model_type', type = str, default="pegasus", choices=["pegasus","bart"])
+parser.add_argument('--clean_model_name', type = str, default = "pegasus_unsupervised",
                     choices = [
                         # Use case #1: Unsupervised abstractive summarization
                         "pegasus_unsupervised", "chatgpt",
@@ -55,7 +53,7 @@ parser.add_argument('--clean_model_name', type=str, default = "pegasus_unsupervi
                     ])
 
 # summary generation
-parser.add_argument('--val_dataset', type=str, default = "val", choices = ["val", "test"])
+parser.add_argument('--val_dataset', type = str, default = "val", choices = ["val", "test"])
 parser.add_argument('--max_val_size', type = int, default = 1000)
 parser.add_argument('--num_beams', type = int, default = 20) # for beam search
 
@@ -73,16 +71,16 @@ parser.add_argument('--metrics_to_use', type = dict, default = {
     "diversity": 1.0,
     "length": 1.0,
 })
-parser.add_argument('--compute_rouge', type = bool, default = True)
-parser.add_argument('--compute_bleu', type = bool, default = True)
-parser.add_argument('--compute_bertscore', type = bool, default = True)
-parser.add_argument('--efficient_bertscore', type = bool, default = False)
+parser.add_argument('--compute_rouge', type = boolean_string, default = True)
+parser.add_argument('--compute_bleu', type = boolean_string, default = True)
+parser.add_argument('--compute_bertscore', type = boolean_string, default = True)
+parser.add_argument('--efficient_bertscore', type = boolean_string, default = False)
 parser.add_argument('--n_efficient', type = int, default = 10)
-parser.add_argument('--compute_bartscore', type = bool, default = True)
-parser.add_argument('--compute_bleurt', type = bool, default = True)
-parser.add_argument('--compute_diversity', type = bool, default = True)
-parser.add_argument('--compute_length', type = bool, default = True)
-parser.add_argument('--stemmer', type = bool, default = True)
+parser.add_argument('--compute_bartscore', type = boolean_string, default = True)
+parser.add_argument('--compute_bleurt', type = boolean_string, default = True)
+parser.add_argument('--compute_diversity', type = boolean_string, default = True)
+parser.add_argument('--compute_length', type = boolean_string, default = True)
+parser.add_argument('--stemmer', type = boolean_string, default = True)
 
 args = parser.parse_args()
 
@@ -101,7 +99,6 @@ args.ratio = ratios[idx]
 
 print("*"*50)
 print(args)
-
 
 
 def main(args):

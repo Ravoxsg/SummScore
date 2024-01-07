@@ -9,10 +9,9 @@ import pickle
 import datasets
 import openai
 from tqdm import tqdm
-
 sys.path.append("/data/mathieu/SummScore/src/") # todo: change to your folder path
 
-from common.utils import seed_everything
+from common.utils import seed_everything, boolean_string
 from common.evaluation import overall_eval 
 from model_utils import build_tokenizer, build_model
 from dataset import Dataset
@@ -24,17 +23,17 @@ openai.api_key = "xxx" # todo: fill in your OpenAI key here!!
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--seed', type = int, default = 42)
-parser.add_argument('--cuda', type = bool, default = True)
-parser.add_argument('--debug', type = bool, default = False)
+parser.add_argument('--cuda', type = boolean_string, default = True)
+parser.add_argument('--debug', type = boolean_string, default = False)
 parser.add_argument('--debug_size', type = int, default = 10)
-parser.add_argument('--few_shot', type = bool, default = True)
+parser.add_argument('--few_shot', type = boolean_string, default = True)
 
 # data
-parser.add_argument('--dataset_key', type=str, default = "samsum", choices= ["cnndm", "xsum", "wikihow", "samsum"])
+parser.add_argument('--dataset_key', type = str, default = "samsum", choices= ["cnndm", "xsum", "wikihow", "samsum"])
 
 # model
 parser.add_argument('--model_type', type = str, default = "pegasus", choices=["pegasus", "bart", "chatgpt"])
-parser.add_argument('--model_name', type=str, default = "google/pegasus-large,pegasus_unsupervised",
+parser.add_argument('--model_name', type = str, default = "google/pegasus-large,pegasus_unsupervised",
                     choices = [
                         # Use case #1: Unsupervised abstractive summarization
                         "google/pegasus-large,pegasus_unsupervised", "gpt-3.5-turbo,chatgpt",
@@ -54,10 +53,10 @@ parser.add_argument('--cache_dir', type = str, default = "../../../hf_models/peg
 parser.add_argument('--load_model_path', type = str, default = "finetuned_checkpoints/our_pegasus_samsum.pt")
 
 # summary generation
-parser.add_argument('--val_dataset', type=str, default = "val", choices = ["val", "test"])
+parser.add_argument('--val_dataset', type = str, default = "val", choices = ["val", "test"])
 parser.add_argument('--max_val_size', type = int, default = 1000)
 parser.add_argument('--inference_bs', type = int, default = 6)
-parser.add_argument('--save_summaries', type = bool, default = True)
+parser.add_argument('--save_summaries', type = boolean_string, default = True)
 parser.add_argument('--generation_method', type = str, default = "beam_search",
                     choices = ["beam_search", "diverse_beam_search", "top_p_sampling", "top_k_sampling"])
 parser.add_argument('--num_return_sequences', type = int, default = 20) # default: 15
@@ -67,14 +66,14 @@ parser.add_argument('--diversity_penalty', type = float, default = 1.0) # for di
 parser.add_argument('--top_p', type = float, default = 0.95) # for top-p sampling
 parser.add_argument('--top_k', type = int, default = 50) # for top-k sampling
 parser.add_argument('--repetition_penalty', type = float, default = 1.0) # for diverse beam search
-parser.add_argument('--stemmer', type = bool, default = True)
+parser.add_argument('--stemmer', type = boolean_string, default = True)
 
 # metrics
-parser.add_argument('--eval_rouge', type = bool, default = True)
-parser.add_argument('--eval_bertscore', type = bool, default = False)
-parser.add_argument('--eval_new_ngram', type = bool, default = True)
-parser.add_argument('--eval_rouge_text', type = bool, default = False)
-parser.add_argument('--n_show_summaries', type=int, default=0)
+parser.add_argument('--eval_rouge', type = boolean_string, default = True)
+parser.add_argument('--eval_bertscore', type = boolean_string, default = False)
+parser.add_argument('--eval_new_ngram', type = boolean_string, default = True)
+parser.add_argument('--eval_rouge_text', type = boolean_string, default = False)
+parser.add_argument('--n_show_summaries', type = int, default=0)
 
 args = parser.parse_args()
 

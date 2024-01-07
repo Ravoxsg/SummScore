@@ -1,7 +1,6 @@
 import numpy as np
 import pickle
 import os
-
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from bert_score import score
 from rouge_score import rouge_scorer
