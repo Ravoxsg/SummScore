@@ -49,6 +49,13 @@ BART fine-tuned on WikiHow: <a href="https://drive.google.com/file/d/1Rb03FYE612
 PEGASUS fine-tuned on SAMSum: <a href="https://drive.google.com/file/d/1dcDAcg-qTqaP5xWa1f-EUvfxORHTCVps/view?usp=share_link" style = "text-decoration:none;color:#4682B4">here</a>   
 BART fine-tuned on SAMSum: <a href="https://drive.google.com/file/d/1OSMws143gfNphHL3smTD7JuDVaKtm5p8/view?usp=share_link" style = "text-decoration:none;color:#4682B4">here</a>   
 
+## DEMO 
+Alternatively, if you just want a demo (in a single file) of SummScore on a single data point (default: CNN/DM), run:
+```
+cd src/summscore/
+CUDA_VISIBLE_DEVICES=0 python demo.py
+```
+
 ## Citation
 If you find our paper or this project helps your research, please kindly consider citing our paper in your publication.   
 ```
